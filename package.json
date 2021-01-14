@@ -1,0 +1,23 @@
+{
+  "name": "generator-sls-lambda",
+  "version": "0.1.0",
+  "description": "A generator of a serverless lambda repo",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "keywords": [
+    "yeoman-generator",
+    "serverless",
+    "lambda",
+    "typescript"
+  ],
+  "files": [
+    "generators"
+  ],
+  "author": "Shawn Ma",
+  "license": "MIT",
+  "dependencies": {
+    "yeoman-generator": "^4.12.0"
+  }
+}
