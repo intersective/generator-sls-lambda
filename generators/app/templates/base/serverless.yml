@@ -1,0 +1,128 @@
+# The stackname requried to differentiate AWS account deployed .
+service: ${env:STACK_NAME}-<%= appname %>
+
+# This will ensure we expect framework version to be above or atleast this version.
+# This is requried to ensure serverless latest feature works like dotenv example.
+frameworkVersion: ^2.17.0
+
+# Ensure .env read and retrieved.
+useDotenv: true
+
+#Necessary plugings
+plugins:
+  - serverless-offline  # To start offline
+  - serverless-plugin-typescript # Good to keep this as typescript used mostly.
+  - serverless-certificate-creator # Good to keep as by defualt we enable custom domains
+  - serverless-domain-manager # Required if custom domain enabled
+
+# Packaging artificats generated during build process.
+package:
+  individually: true
+  exclude:
+    - .github/**
+  include:
+    - artifacts/**/*
+    - serverless.yml
+    - .env
+    - package.json
+    - package-lock.json
+
+# Main Configuraion
+provider:
+  name: aws
+  runtime: nodejs12.x
+  timeout: 30
+  memorySize: 128
+  region: ${env:REGION} # region better to use as env as we pass env varibale for region
+  stage: ${opt:stage, 'sandbox'} # Default set to sandbox
+  tracing:  # This is required to enable tracing for both api gateway and lambda for x-ray
+    lambda: true
+    apiGateway: true
+
+  # Important config to allow this lambda function access policy as below.
+  # It ensured Lambda has access to write Cloudwatch logs, perform lambda calls, api gateway calls
+  # And if any add-on service like secret variables, dynamoDB.
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:DeleteLogGroup
+        - logs:PutLogEvents
+        - logs:DescribeLogStreams
+        - logs:DescribeLogGroups
+        - logs:FilterLogEvents
+      Resource: "arn:aws:logs:*:*:*"
+    - Effect: Allow
+      Action:
+        - lambda:AddPermission
+        - lambda:CreateAlias
+        - lambda:DeleteFunction
+        - lambda:InvokeFunction
+        - lambda:PublishVersion
+        - lambda:RemovePermission
+        - lambda:Update*
+      Resource:
+        - arn:aws:lambda:*:*:function:*
+    - Effect: Allow
+      Action:
+        - apigateway:GET
+        - apigateway:POST
+        - apigateway:PUT
+        - apigateway:DELETE
+        - apigateway:PATCH
+      Resource:
+        - arn:aws:apigateway:*::/restapis*
+        - arn:aws:apigateway:*::/apikeys*
+        - arn:aws:apigateway:*::/usageplans*
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+        - ssm:*
+      Resource:
+        - arn:aws:secretsmanager:*:*:secret:*
+
+functions:
+  graphql:
+    handler: src/index.handler
+    events:
+      - http:
+        path: /
+        method: ANY
+        cors: true
+
+
+# Custom Resource provisioning service
+custom:
+  serverless-offline:
+    host: 0.0.0.0
+    noPrependStageInUrl: true
+
+  # The code from here to till the end does custom domain and route S3 registration.
+  # This code can be copied to all serverless file and works.
+  # It works based on env variables like HOSTEDZONEID,SUBDOMAIN,DOMAIN,DEPLOY
+  domains:
+    prod: ${env:SUBDOMAIN}.${env:DOMAIN}
+    sandbox: ${env:SUBDOMAIN}.${env:DEPLOY}.${env:DOMAIN}
+    stage: ${env:SUBDOMAIN}.${env:DEPLOY}.${env:DOMAIN}
+  customDomain:
+    basePath: ""
+    certificateName: "${env:SUBDOMAIN}.${env:DOMAIN}"
+    securityPolicy: "tls_1_2"
+    endpointType: "edge"
+    domainName: "${self:custom.domains.${env:DEPLOY}}"
+    stage: "${env:STAGE}"
+    apiType: "rest"
+    hostedZoneId: "${env:HOSTEDZONEID}"
+    createRoute53Record: true
+  customCertificate:
+    certificateName: "${env:SUBDOMAIN}.${env:DOMAIN}"
+    hostedZoneName: "${env:DOMAIN}"
+    hostedZoneId: "${env:HOSTEDZONEID}"
+    subjectAlternativeNames :
+      - "${env:SUBDOMAIN}.sandbox.${env:DOMAIN}"
+      - "${env:SUBDOMAIN}.stage.${env:DOMAIN}"
+    tags:
+      Name: ${env:SUBDOMAIN}.${env:DOMAIN}
+      Environment: ${env:STAGE}
+    rewriteRecords: false

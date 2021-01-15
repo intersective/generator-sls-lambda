@@ -4,7 +4,7 @@
   "description": "A generator of a serverless lambda repo",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test"
+    "test": ""
   },
   "keywords": [
     "yeoman-generator",
