@@ -1,5 +1,6 @@
 const Generator = require('yeoman-generator');
 const glob = require('glob');
+const logo = require('./logo.js');
 
 module.exports = class extends Generator {
 
@@ -83,12 +84,13 @@ module.exports = class extends Generator {
   installPackages() {
     const dependencies = [
       'cors', 'dotenv', 'express', 'serverless-http',
-      '@dazn/lambda-powertools-logger', 'lambda-powertools-pattern-basic', '@dazn/lambda-powertools-http-client'
+      '@dazn/lambda-powertools-logger', '@dazn/lambda-powertools-pattern-basic', '@dazn/lambda-powertools-http-client'
     ];
     const devDependencies = [
       'serverless', 'serverless-offline', 'serverless-plugin-typescript', 'serverless-certificate-creator', 'serverless-domain-manager',
-      '@types/cors', '@types/express', 'typescript', 'tslint', 'tslint-config-airbnb', 'jest', 'jest-express', 'ts-jest',
-      'aws-sdk'
+      '@types/cors', '@types/express', 'typescript',
+      'eslint', '@typescript-eslint/parser', '@typescript-eslint/eslint-plugin', '@typescript-eslint/eslint-plugin-tslint',
+      'jest', 'jest-express', 'ts-jest'
     ];
 
     if (this.answers.choices.includes('jwtParser')) {
@@ -97,22 +99,26 @@ module.exports = class extends Generator {
 
     if (this.answers.choices.includes('dynamodb')) {
       dependencies.push('@dazn/lambda-powertools-dynamodb-client');
-      devDependencies.push('serverless-dynamodb-local');
+      devDependencies.push('serverless-dynamodb-local', 'aws-sdk');
     }
 
     if (this.answers.choices.includes('sonarCloud')) {
       devDependencies.push('jest-sonar-reporter');
     }
 
-    _npmInstall(dependencies);
-    _npmInstall(devDependencies, true);
+    this._npmInstall(dependencies);
+    this._npmInstall(devDependencies, true);
   }
 
   _npmInstall(packages, saveDev = false) {
-    return ;
     if (this.options.appdir) {
       return this.npmInstall(packages, { 'save-dev': saveDev }, { cwd: this.options.appdir });
     }
     return this.npmInstall(packages, { 'save-dev': saveDev });
+  }
+
+  end() {
+    this.log(logo);
+    this.log('Thanks for using sls-lambda :)');
   }
 };

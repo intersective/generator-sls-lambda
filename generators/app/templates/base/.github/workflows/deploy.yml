@@ -99,12 +99,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.region }}
 
-      # - name: AWS DynamoDB Global Tables creation
-      #   env:
-      #     global_dynamoDB: ${{ env.prefix }}-<%= appname %>-${{ env.stage }}
-      #     global_region1: us-east-1
-      #   run: |
-      #     chmod +x create_dynamoDB_global_table.sh && ./create_dynamoDB_global_table.sh
+<% if (useDynamoDB) { %>
+      - name: AWS DynamoDB Global Tables creation
+        env:
+          global_dynamoDB: ${{ env.prefix }}-<%= appname %>-${{ env.stage }}
+          global_region1: us-east-1
+        run: |
+          chmod +x create_dynamoDB_global_table.sh && ./create_dynamoDB_global_table.sh
+<% } %>
 
       - name: Serverless Packaging
         run: |

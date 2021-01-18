@@ -1,5 +1,6 @@
 import { Request } from 'jest-express/lib/request';
 import { Response } from 'jest-express/lib/response';
+import dashboard from '../dashboard';
 jest.mock('../../utils');
 
 let mockRequest: any;

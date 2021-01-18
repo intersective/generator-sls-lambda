@@ -83,13 +83,13 @@ provider:
         - arn:aws:secretsmanager:*:*:secret:*
 
 functions:
-  graphql:
+  handler:
     handler: src/index.handler
     events:
       - http:
-        path: /
-        method: ANY
-        cors: true
+          path: '{proxy+}'
+          method: ANY
+          cors: true
 
 
 # Custom Resource provisioning service

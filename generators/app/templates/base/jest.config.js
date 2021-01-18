@@ -6,7 +6,8 @@ module.exports = {
   testResultsProcessor: 'jest-sonar-reporter',
   collectCoverageFrom: [
     'src/**/*.ts',
-    '!src/index.ts'
+    '!src/index.ts',
+    '!src/routes/index.ts'
   ],
   coverageDirectory: 'coverage/'
 };
