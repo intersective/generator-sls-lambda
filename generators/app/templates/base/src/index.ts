@@ -38,7 +38,7 @@ app.use(jwtParser);
 
 app.get('/dashboard', dashboard);
 
-app.use((req: Request, res: Response, next: any) => {
+app.use((req: Request, res: Response) => {
   Log.warn('Request not found', { req });
   return res.status(400).send({
     message: 'request not found',
