@@ -24,7 +24,7 @@ export const httpRequest = (options: HttpOptions) =>
   })
     .then((res: any) => res.body)
     .catch((error: any) => {
-      Log.error('API request failed', {
+      Log.error('HTTP request failed', {
         options,
         error,
       });

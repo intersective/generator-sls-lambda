@@ -3,7 +3,7 @@ import * as queries from './resolvers/queries';
 import * as mutations from './resolvers/mutations';
 import * as user from './resolvers/user';
 import typeDefs from './type-defs';
-import { HttpSource } from './data-sources';
+import { Http } from './data-sources';
 import wrap from '@dazn/lambda-powertools-pattern-basic';
 import { Log <% if (useJwtParser) { %>, jwtDecode <% } %>} from './utils';
 import { APIGatewayProxyEvent, Callback, Context } from 'aws-lambda';
@@ -23,13 +23,14 @@ const apolloServer = new ApolloServer({
   typeDefs,
   resolvers,
   dataSources: () => ({
-    httpSource: new HttpSource(),
+    http: new Http(),
   }),
   // subscriptions: {},
   introspection: IS_DEV,
-  context: req => parseJWT(req),
+  context: req => <% if (useJwtParser) { %>parseJWT(req)<% } else {%>{}<% }%>,
 });
 
+<% if (useJwtParser) { %>
 /**
  * Parse JWT and store necessary info in memory
  * @param req Request Object
@@ -60,6 +61,7 @@ async function parseJWT(req) {
   context.user.uuid = payload.user_uuid;
   return context;
 }
+<% } %>
 
 function runApollo(event: APIGatewayProxyEvent, context: Context, apollo: any) {
   return new Promise((resolve, reject) => {
