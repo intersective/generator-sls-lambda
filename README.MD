@@ -14,39 +14,51 @@ This is a scaffolding tool that you can use to quickly create a new project with
 1. run `npm run dev` to start the serverless server
 1. send a GET request to `http://127.0.0.1:3000/dashboard` to test the server
 
-## Packages
+## Tools & Packages
 
-### Base packages
-- express
-- cors
-- dotenv
-- serverless
-- serverless-http
-- serverless-offline
-- serverless-plugin-typescript
-- serverless-certificate-creator
-- serverless-domain-manager
-- @dazn/lambda-powertools-logger
-- @dazn/lambda-powertools-pattern-basic
-- @dazn/lambda-powertools-http-client
-- @types/cors
-- @types/express
-- typescript
-- eslint
-- @typescript-eslint/parser
-- @typescript-eslint/eslint-plugin
-- @typescript-eslint/eslint-plugin-tslint
-- jest
-- jest-express
-- ts-jest
-
-### jwt parser packages
-- @practera/jwt-parser
-
-### DynamoDB packages
-- @dazn/lambda-powertools-dynamodb-client
-- serverless-dynamodb-local
-- aws-sdk
-
-### SonarCloud packages
-- jest-sonar-reporter
+- ExpressJS
+  - express
+  - cors
+  - dotenv
+- Serverless Framework
+  - serverless
+  - serverless-http
+  - serverless-offline
+  - serverless-plugin-typescript
+  - serverless-certificate-creator
+  - serverless-domain-manager
+- [DAZN Lambda Powertools](https://github.com/getndazn/dazn-lambda-powertools)(Logging System)
+  - @dazn/lambda-powertools-logger
+  - @dazn/lambda-powertools-pattern-basic
+  - @dazn/lambda-powertools-http-client
+- TypeScript
+  - @types/cors
+  - @types/express
+  - typescript
+  - eslint
+  - @typescript-eslint/parser
+  - @typescript-eslint/eslint-plugin
+  - @typescript-eslint/eslint-plugin-tslint
+- [Jest](https://jestjs.io/en)
+  - jest
+  - jest-express
+  - ts-jest
+- GitHub Action Flows
+- [Jwt Parser](https://github.com/intersective/jwt-parser)
+  - @practera/jwt-parser
+- DynamoDB
+  - @dazn/lambda-powertools-dynamodb-client
+  - serverless-dynamodb-local
+  - aws-sdk
+- SonarCloud
+  - jest-sonar-reporter
+- GraphQL
+  - apollo-datasource
+  - apollo-datasource-rest
+  - apollo-server-lambda
+  - dataloader
+  - graphql
+  - graphql-tag
+  - @2fd/graphdoc
+  - @types/aws-lambda
+  - apollo-server-testing

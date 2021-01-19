@@ -53,6 +53,7 @@ module.exports = class extends Generator {
       useSonarCloud: this.answers.choices.includes('sonarCloud'),
       useJwtParser: this.answers.choices.includes('jwtParser'),
       useDynamoDB: this.answers.choices.includes('dynamodb'),
+      useGraphQL: this.answers.choices.includes('graphql'),
     };
 
     // copy base files
@@ -79,17 +80,31 @@ module.exports = class extends Generator {
         parameters
       );
     }
+
+    // copy graphQL related files
+    if (this.answers.choices.includes('graphql')) {
+      this.fs.copyTpl(
+        glob.sync(this.templatePath('graphql/**/*'), { dot: true }),
+        destinationPath,
+        parameters
+      );
+    } else {
+      // copy rest API related files if it is not graphQL
+      this.fs.copyTpl(
+        glob.sync(this.templatePath('rest/**/*'), { dot: true }),
+        destinationPath,
+        parameters
+      );
+    }
   }
 
   installPackages() {
     const dependencies = [
-      'cors', 'dotenv', 'express', 'serverless-http',
-      '@dazn/lambda-powertools-logger', '@dazn/lambda-powertools-pattern-basic', '@dazn/lambda-powertools-http-client'
+      'dotenv', '@dazn/lambda-powertools-logger', '@dazn/lambda-powertools-pattern-basic', '@dazn/lambda-powertools-http-client'
     ];
     const devDependencies = [
       'serverless', 'serverless-offline', 'serverless-plugin-typescript', 'serverless-certificate-creator', 'serverless-domain-manager',
-      '@types/cors', '@types/express', 'typescript',
-      'eslint', '@typescript-eslint/parser', '@typescript-eslint/eslint-plugin', '@typescript-eslint/eslint-plugin-tslint',
+      'typescript', 'eslint', '@typescript-eslint/parser', '@typescript-eslint/eslint-plugin', '@typescript-eslint/eslint-plugin-tslint',
       'jest', 'jest-express', 'ts-jest'
     ];
 
@@ -104,6 +119,16 @@ module.exports = class extends Generator {
 
     if (this.answers.choices.includes('sonarCloud')) {
       devDependencies.push('jest-sonar-reporter');
+    }
+
+    if (this.answers.choices.includes('graphql')) {
+      // graphql packages
+      dependencies.push('apollo-datasource', 'apollo-datasource-rest', 'apollo-server-lambda', 'dataloader', 'graphql', 'graphql-tag');
+      devDependencies.push('@2fd/graphdoc', '@types/aws-lambda', 'apollo-server-testing');
+    } else {
+      // rest API packages
+      dependencies.push('cors', 'express', 'serverless-http');
+      devDependencies.push('@types/cors', '@types/express');
     }
 
     this._npmInstall(dependencies);
