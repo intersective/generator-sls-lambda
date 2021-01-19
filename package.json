@@ -4,7 +4,7 @@
   "description": "A generator of a serverless lambda repo",
   "main": "index.js",
   "scripts": {
-    "test": ""
+    "test": "mocha"
   },
   "keywords": [
     "yeoman-generator",
@@ -15,9 +15,22 @@
   "files": [
     "generators"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://https://github.com/intersective/generator-sls-lambda.git"
+  },
+  "bugs": {
+    "url": "https://github.com/intersective/generator-sls-lambda/issues"
+  },
+  "homepage": "https://github.com/intersective/generator-sls-lambda#readme",
   "author": "Shawn Ma",
   "license": "MIT",
   "dependencies": {
     "yeoman-generator": "^4.12.0"
+  },
+  "devDependencies": {
+    "mocha": "^8.2.1",
+    "yeoman-assert": "^3.1.1",
+    "yeoman-test": "^4.0.0"
   }
 }
