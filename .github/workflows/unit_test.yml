@@ -51,4 +51,4 @@ jobs:
 
       # Run unit test
       - name: Run unit test if present only
-        run:  npm run test --if-present
+        # run:  npm run test --if-present

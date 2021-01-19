@@ -36,7 +36,6 @@ function filesInDir(files, dir) {
 describe('sls-lambda:app generates a project ', () => {
   it('in current directory with base files', () => {
     return helpers.run(path.join(__dirname, '../generators/app'))
-      .inTmpDir()
       // .withOptions({'skip-install': true})
       // .withArguments(['newapp'])        // Mock the arguments
       .withPrompts({ name: 'newapp', choices: [] })   // Mock the prompt answers
@@ -49,7 +48,6 @@ describe('sls-lambda:app generates a project ', () => {
 
   it('in new directory with base files', () => {
     return helpers.run(path.join(__dirname, '../generators/app'))
-      .inTmpDir()
       .withArguments(['newapp'])
       .withPrompts({ name: 'newapp', choices: [] })
       .then(function() {
@@ -60,7 +58,6 @@ describe('sls-lambda:app generates a project ', () => {
 
   it('in new directory with base & dynamodb files', () => {
     return helpers.run(path.join(__dirname, '../generators/app'))
-      .inTmpDir()
       .withArguments(['newapp'])
       .withPrompts({ name: 'newapp', choices: ['dynamodb'] })   // Mock the prompt answers
       .then(function() {
@@ -71,7 +68,6 @@ describe('sls-lambda:app generates a project ', () => {
 
   it('in new directory with base & dynamodb & sonarcloud files', () => {
     return helpers.run(path.join(__dirname, '../generators/app'))
-      .inTmpDir()
       .withArguments(['newapp'])
       .withPrompts({ name: 'newapp', choices: ['dynamodb', 'sonarCloud'] })   // Mock the prompt answers
       .then(function() {
