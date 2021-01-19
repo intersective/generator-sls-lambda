@@ -36,8 +36,8 @@ http://localhost:18000/shell
 ```
 <% } %>
 
-## Error Handling
-- We use [DAZN Lambda Powertools](https://github.com/getndazn/dazn-lambda-powertools) as the error handling tool.
+## Logging
+- We use [DAZN Lambda Powertools](https://github.com/getndazn/dazn-lambda-powertools) as the error logging tool.
 - Environment variable `LOG_LEVEL` has 4 values:
  - `DEBUG` - Display all logs
  - `INFO` - Display `Log.info()` logs and above
