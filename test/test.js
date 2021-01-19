@@ -35,6 +35,7 @@ function filesInDir(files, dir) {
 
 describe('sls-lambda:app generates a project ', function () {
   it('in current directory with base files', function () {
+    console.log(path.join(__dirname, '../generators/app'));
     return helpers.run(path.join(__dirname, '../generators/app'))
       // .withOptions({ foo: 'bar' })      // Mock options passed in
       // .withArguments(['newapp'])        // Mock the arguments
