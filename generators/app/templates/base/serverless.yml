@@ -35,7 +35,7 @@ provider:
   timeout: 30
   memorySize: 128
   region: ${env:REGION} # region better to use as env as we pass env varibale for region
-  stage: ${env:STAGE}
+  stage: ${env:ENV}
   tracing:  # This is required to enable tracing for both api gateway and lambda for x-ray
     lambda: true
     apiGateway: true
@@ -99,20 +99,20 @@ custom:
     host: 0.0.0.0
     noPrependStageInUrl: true
 
-  # The code from here to till the end does custom domain and route S3 registration.
+  # The code from here to till the end does custom domain and route 53 registration.
   # This code can be copied to all serverless file and works.
-  # It works based on env variables like HOSTEDZONEID,SUBDOMAIN,DOMAIN,STAGE
+  # It works based on env variables like HOSTEDZONEID,SUBDOMAIN,DOMAIN,ENV
   domains:
     live: ${env:SUBDOMAIN}.${env:DOMAIN}
-    sandbox: ${env:SUBDOMAIN}.${env:STAGE}.${env:DOMAIN}
-    stage: ${env:SUBDOMAIN}.${env:STAGE}.${env:DOMAIN}
+    sandbox: ${env:SUBDOMAIN}.${env:ENV}.${env:DOMAIN}
+    stage: ${env:SUBDOMAIN}.${env:ENV}.${env:DOMAIN}
   customDomain:
     basePath: ""
     certificateName: "${env:SUBDOMAIN}.${env:DOMAIN}"
     securityPolicy: "tls_1_2"
     endpointType: "edge"
-    domainName: "${self:custom.domains.${env:STAGE}}"
-    stage: "${env:STAGE}"
+    domainName: "${self:custom.domains.${env:ENV}}"
+    stage: "${env:ENV}"
     apiType: "rest"
     hostedZoneId: "${env:HOSTEDZONEID}"
     createRoute53Record: true
@@ -125,5 +125,5 @@ custom:
       - "${env:SUBDOMAIN}.stage.${env:DOMAIN}"
     tags:
       Name: ${env:SUBDOMAIN}.${env:DOMAIN}
-      Environment: ${env:STAGE}
+      Environment: ${env:ENV}
     rewriteRecords: false
