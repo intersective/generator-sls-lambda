@@ -1,4 +1,4 @@
-[![npm version](https://badge.fury.io/js/generator-sls-lambda.svg)](https://badge.fury.io/js/generator-sls-lambda)
+[![npm version](https://badge.fury.io/js/generator-sls-lambda.svg)](https://www.npmjs.com/package/generator-sls-lambda)
 
 # sls-lambda
 This is a scaffolding tool that you can use to quickly create a new project with serverless, lambda function and TypeScript.
