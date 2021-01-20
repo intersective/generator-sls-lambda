@@ -52,6 +52,10 @@ module.exports = class extends Generator {
             name: 'GraphQL(Apollo)',
             value: 'graphql'
           },
+          {
+            name: 'Web Hook',
+            value: 'webhook'
+          },
         ],
         default: 'rest',
       }
@@ -103,6 +107,16 @@ module.exports = class extends Generator {
         );
         break;
 
+      case 'webhook':
+        // copy webhook related files
+        this.fs.copyTpl(
+          glob.sync(this.templatePath('webhook/**/*'), { dot: true }),
+          // webhook related files are only inside 'src', that's why we need to specify it
+          `${ destinationPath }/src/`,
+          parameters
+        );
+        break;
+
      default:
       // copy rest API related files
       this.fs.copyTpl(
@@ -142,6 +156,10 @@ module.exports = class extends Generator {
         // graphql packages
         dependencies.push('apollo-datasource', 'apollo-datasource-rest', 'apollo-server-lambda', 'dataloader', 'graphql', 'graphql-tag');
         devDependencies.push('@2fd/graphdoc', '@types/aws-lambda', 'apollo-server-testing');
+        break;
+
+      case 'webhook':
+        dependencies.push('url');
         break;
 
       default:

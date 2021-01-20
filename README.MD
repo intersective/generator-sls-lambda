@@ -16,6 +16,11 @@ This is a scaffolding tool that you can use to quickly create a new project with
 1. run `npm run dev` to start the serverless server
 1. send a GET request to `http://127.0.0.1:3000/dashboard` to test the server
 
+## Development
+1. run `npm install -g yo` to install [yeoman](https://yeoman.io/)
+1. run `npm link` under the directory of `generator-sls-lambda` to link this module as a global module on your local machine
+1. you will be able to run `yo sls-lambda newapp` to create new app now
+
 ## Tools & Packages
 
 - ExpressJS
