@@ -24,7 +24,7 @@ export const handler = wrap(async (event: any, context: any) => {
   Log.debug('received records', {records: event.Records});
 
   const requests = event.Records.map((record: any) => {
-
+    return Promise.resolve(record.body);
   });
 
   Promise.allSettled(requests).then((responses: any) => {
