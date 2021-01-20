@@ -7,7 +7,7 @@ This is a scaffolding tool that you can use to quickly create a new project with
 
 ### Installation
 1. run `npm install -g yo` to install [yeoman](https://yeoman.io/)
-1. run `npm install -g sls-lambda` to install sls-lambda
+1. run `npm install -g generator-sls-lambda` to install generator-sls-lambda
 1. run `yo sls-lambda newapp` to create a new project under folder `newapp`
 1. follow the instructions and choose the package that you need
 
