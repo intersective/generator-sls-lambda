@@ -37,11 +37,23 @@ module.exports = class extends Generator {
             name: 'DynamoDB',
             value: 'dynamodb'
           },
+        ]
+      },
+      {
+        type: 'list',
+        name: 'api',
+        message: 'What type of API do you need?',
+        choices: [
+          {
+            name: 'REST API',
+            value: 'rest',
+          },
           {
             name: 'GraphQL(Apollo)',
             value: 'graphql'
-          }
-        ]
+          },
+        ],
+        default: 'rest',
       }
     ]);
   }
@@ -53,7 +65,7 @@ module.exports = class extends Generator {
       useSonarCloud: this.answers.choices.includes('sonarCloud'),
       useJwtParser: this.answers.choices.includes('jwtParser'),
       useDynamoDB: this.answers.choices.includes('dynamodb'),
-      useGraphQL: this.answers.choices.includes('graphql'),
+      useGraphQL: this.answers.api === 'graphql',
     };
 
     // copy base files
@@ -80,19 +92,23 @@ module.exports = class extends Generator {
         parameters
       );
     }
+    switch (this.answers.api) {
+      case 'graphql':
+        // copy graphql related files
+        this.fs.copyTpl(
+          glob.sync(this.templatePath('graphql/**/*'), { dot: true }),
+          // graphql related files are only inside 'src', that's why we need to specify it
+          `${ destinationPath }/src/`,
+          parameters
+        );
+        break;
 
-    // copy graphQL related files
-    if (this.answers.choices.includes('graphql')) {
-      this.fs.copyTpl(
-        glob.sync(this.templatePath('graphql/**/*'), { dot: true }),
-        destinationPath,
-        parameters
-      );
-    } else {
-      // copy rest API related files if it is not graphQL
+     default:
+      // copy rest API related files
       this.fs.copyTpl(
         glob.sync(this.templatePath('rest/**/*'), { dot: true }),
-        destinationPath,
+        // rest related files are only inside 'src', that's why we need to specify it
+        `${ destinationPath }/src/`,
         parameters
       );
     }
@@ -121,14 +137,18 @@ module.exports = class extends Generator {
       devDependencies.push('jest-sonar-reporter');
     }
 
-    if (this.answers.choices.includes('graphql')) {
-      // graphql packages
-      dependencies.push('apollo-datasource', 'apollo-datasource-rest', 'apollo-server-lambda', 'dataloader', 'graphql', 'graphql-tag');
-      devDependencies.push('@2fd/graphdoc', '@types/aws-lambda', 'apollo-server-testing');
-    } else {
-      // rest API packages
-      dependencies.push('cors', 'express', 'serverless-http');
-      devDependencies.push('@types/cors', '@types/express');
+    switch (this.answers.api) {
+      case 'graphql':
+        // graphql packages
+        dependencies.push('apollo-datasource', 'apollo-datasource-rest', 'apollo-server-lambda', 'dataloader', 'graphql', 'graphql-tag');
+        devDependencies.push('@2fd/graphdoc', '@types/aws-lambda', 'apollo-server-testing');
+        break;
+
+      default:
+        // rest API packages
+        dependencies.push('cors', 'express', 'serverless-http');
+        devDependencies.push('@types/cors', '@types/express');
+        break;
     }
 
     this._npmInstall(dependencies);

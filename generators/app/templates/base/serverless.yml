@@ -14,6 +14,7 @@ plugins:
   - serverless-plugin-typescript # Good to keep this as typescript used mostly.
   - serverless-certificate-creator # Good to keep as by defualt we enable custom domains
   - serverless-domain-manager # Required if custom domain enabled
+  <% if (useDynamoDB) { %>- serverless-dynamodb-local<% } %>
 
 # Packaging artificats generated during build process.
 package:
