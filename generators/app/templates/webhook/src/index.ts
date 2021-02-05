@@ -21,7 +21,7 @@ export const handler = wrap(async (event: any, context: any) => {
     },
   };
 
-  Log.debug('received records', {records: event.Records});
+  Log.debug('received records', { records: event.Records });
 
   const requests = event.Records.map((record: any) => {
     return Promise.resolve(record.body);
@@ -30,7 +30,7 @@ export const handler = wrap(async (event: any, context: any) => {
   Promise.allSettled(requests).then((responses: any) => {
     // all responses are resolved successfully
     for (const response of responses) {
-      Log.debug('response status', {status: response.status});
+      Log.debug('response status', { status: response.status });
     }
   }).catch((err: any) =>  {
     Log.debug('error', err);
