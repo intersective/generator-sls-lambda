@@ -66,6 +66,7 @@ module.exports = class extends Generator {
     const destinationPath = this.options.appdir ? this.destinationPath(`${ this.options.appdir }/`) : this.destinationPath();
     const parameters = {
       appname: this.answers.name,
+      APPNAME: this.answers.name.replace("-", "_").toUpperCase(),
       useSonarCloud: this.answers.choices.includes('sonarCloud'),
       useJwtParser: this.answers.choices.includes('jwtParser'),
       useDynamoDB: this.answers.choices.includes('dynamodb'),
