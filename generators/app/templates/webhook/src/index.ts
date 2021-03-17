@@ -1,40 +1,33 @@
+import { SQSEvent, SQSRecord } from "aws-lambda";
 import dotenv from 'dotenv';
 dotenv.config();
-const url = require('url');
 import wrap from '@dazn/lambda-powertools-pattern-basic';
+const logger = require('@dazn/lambda-powertools-logger');
+import { calculateType } from "./types/calculate-type";
 
-import { Log } from './utils';
+const processRecord = (record: SQSRecord) => {
+  logger.debug("record being processed", { record: record });
+  if(record.messageAttributes.type.stringValue === undefined) {
+    logger.debug("Could not identify type", { record: record });
+    return Promise.reject("Request type not set up");
+  }
+  const type = calculateType(record.messageAttributes.type.stringValue, JSON.parse(record.body), process.env);
+  return type.send();
+};
 
-export const handler = wrap(async (event: any, context: any) => {
-  const endpoint = process.env.ENDPOINT;
-  const pathname = url.parse(endpoint).pathname;
-  const hostname = url.parse(endpoint).hostname;
-  // An object of options to indicate where to post to
-  const postOptions = {
-    hostname: hostname,
-    path: pathname,
-    method: 'POST',
-    port: 443,
-    timeout: 20000,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+export const handler = wrap(async (event: SQSEvent, context: any) => {
+  logger.debug('records processed', { records: event.Records });
 
-  Log.debug('received records', { records: event.Records });
+  const preWrapPromises = event.Records.map(processRecord);
 
-  const requests = event.Records.map((record: any) => {
-    return Promise.resolve(record.body);
-  });
-
-  Promise.allSettled(requests).then((responses: any) => {
+  Promise.allSettled(preWrapPromises).then(responses => {
     // all responses are resolved successfully
     for (const response of responses) {
-      Log.debug('response status', { status: response.status });
+      logger.debug('response status', {response:response, status: response.status});
     }
-  }).catch((err: any) =>  {
-    Log.debug('error', err);
-  }).finally(() => {
+  }).catch(function(err) {
+    logger.debug('error', err);
+  }).finally(function() {
     context.succeed();
   });
 });

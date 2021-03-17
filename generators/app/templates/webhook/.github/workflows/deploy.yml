@@ -22,9 +22,6 @@ jobs:
       stage : stage
       prefix: <%= appname %>
       domain: <%= appname %>.com
-      subdomain: app
-      deploy: stage
-      hostedZoneId:
 
 
     steps:
@@ -47,7 +44,7 @@ jobs:
           prefix=${{ env.prefix }} >> .env
           stage=${{ env.stage }} >> .env
           region=${{ env.region }} >> .env
-          ${{ secrets.P2_ENV }}
+          ${{ secrets.STAGE_ENV }}
           EOF
 
 
@@ -110,9 +107,6 @@ jobs:
 
       - name: Serverless Packaging
         run: |
-          serverless create-cert
-          serverless create_domain
-          echo "Serverless Packaging"
           serverless package --package artifacts/${{ env.stage }} --stage ${{ env.stage }} --region ${{ env.region }} -v
 
       - name: Deploy

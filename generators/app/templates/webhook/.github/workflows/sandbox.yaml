@@ -1,57 +1,46 @@
-# GitHub Actions WorkFlow
+# GitHub Actions WorkFlow Name
 
-name: Deploy to AWS - Master Branch
+name: Sandbox environment
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the develop branch
+#Event Trigger for this Workflow
+
 on:
   workflow_dispatch:
   push:
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - '.gitignore'
-    branches: [ master ]
+    branches: [ develop ]
+
+#Jobs to perform based on event occurred
 
 jobs:
-  Build-Deploy:
-    name: Build-Deploy
+  sandbox:
+    name: sandbox
     runs-on: ubuntu-latest
+
+    #Global Env variables declare here
     env:
-      region : ap-southeast-2
-      stage : stage
-      prefix: <%= appname %>
-      domain: <%= appname %>.com
-      subdomain: app
-      deploy: stage
-      hostedZoneId:
+      REGION : ap-southeast-2
+      ENV : sandbox # Valid values are sandbox,stage,live only
+      STACK_NAME: sandbox # Valid values are au,us,uk,p2,lf,nu,sandbox only
 
-
+    # Steps to execute in this job
     steps:
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      # Setup Node Environment
-      - name: Node.js environment
-        uses: actions/setup-node@v1
 
-      # Install Serverless Framework
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      
+  
       - name: Install Serverless Framework
-        run: npm i -g serverless
-
-      # Create environment variables
-      - name: create ENV file
         run: |
-          cat >> .env <<EOF
-          prefix=${{ env.prefix }} >> .env
-          stage=${{ env.stage }} >> .env
-          region=${{ env.region }} >> .env
-          ${{ secrets.P2_ENV }}
-          EOF
-
-
-      # Cache Node modules
+          npm i -g serverless@2.17.0
+      
+ 
       - name: Cache node modules
         uses: actions/cache@v2
         id: cache-node-modules
@@ -70,56 +59,51 @@ jobs:
             ${{ runner.os }}-
 
 
-      # Install npm Dependencies requried for prod only.
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        # run:  npm install --only=prod
         run:  npm install
 
-
-      # Run lint test
-      - name: Run lint Test if present only
+     
+      - name: create ENV file
+        run: |
+          cat >> .env <<EOF
+          ${{ secrets.SANDBOX_<%= appname.replace("-", "_").toUpperCase() %>_DEFAULT_ENV }}
+          EOF
+          
+  
+      - name: Run lint test if present only
         run:  npm run lint --if-present
 
-      # Run unit test
+    
       - name: Run unit test if present only
         run:  npm run test --if-present
 
-      # Run Sonarcloudscan
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Configure AWS credentials from Test account
+      
+  
+      - name: Configure AWS credentials from ${{ env.STACK_NAME }} account in ${{ env.REGION }} region
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.region }}
-
-<% if (useDynamoDB) { %>
-      - name: AWS DynamoDB Global Tables creation
-        env:
-          global_dynamoDB: ${{ env.prefix }}-<%= appname %>-${{ env.stage }}
-          global_region1: us-east-1
-        run: |
-          chmod +x create_dynamoDB_global_table.sh && ./create_dynamoDB_global_table.sh
-<% } %>
+          aws-access-key-id: ${{ secrets.SANDBOX_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.SANDBOX_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+         
 
       - name: Serverless Packaging
         run: |
-          serverless create-cert
-          serverless create_domain
-          echo "Serverless Packaging"
-          serverless package --package artifacts/${{ env.stage }} --stage ${{ env.stage }} --region ${{ env.region }} -v
+          serverless package --package artifacts/${{ env.ENV }} --stage ${{ env.ENV }} --region ${{ env.REGION }} -v
 
-      - name: Deploy
+
+      - name: Serverless Deploy
         run: |
-          serverless deploy --stage ${{ env.stage }} --region ${{ env.region }} --package artifacts/${{ env.stage }} -v
+          serverless deploy --stage ${{ env.ENV }} --region ${{ env.REGION }} --package artifacts/${{ env.ENV }} -v
 
-      # Run Slack Notification
+
       - name: Slack Notification
         if: always() # Pick up events even if the job fails or is canceled.
         uses: 8398a7/action-slack@v3
@@ -128,10 +112,10 @@ jobs:
           MATRIX_CONTEXT: ${{ toJson(matrix) }} # required
         with:
           status: ${{ job.status }}
-          author_name: <%= appname %> master branch - Deploy to AWS (Stage environment)
+          author_name: ${{ env.SUBDOMAIN }} deployed to ${{ env.ENV }} environment in ${{ env.STACK_NAME }} AWS account
           mention: 'here'
           if_mention: failure,cancelled
-          job_name: Build-Deploy # Match the name above.
+          job_name: sandbox # Match the name above.
           fields: repo,commit,eventName,ref,workflow,message,author,job,took
           custom_payload: |
             {
