@@ -67,7 +67,7 @@ jobs:
       - name: create ENV file
         run: |
           cat >> .env <<EOF
-          ${{ secrets.SANDBOX_<%= APPNAME %>_DEFAULT_ENV }}
+          ${{ secrets.SANDBOX_<%= appname.replace("-", "_").toUpperCase() %>_DEFAULT_ENV }}
           EOF
           
   
