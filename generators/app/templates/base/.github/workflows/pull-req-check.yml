@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v1
 
- 
+
       - name: Cache node modules
         uses: actions/cache@v2
         id: cache-node-modules
@@ -57,29 +57,29 @@ jobs:
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run:  npm install
-      
+
 
       - name: create ENV file
         run: |
           cat >> .env <<EOF
           ${{ secrets.P2_<<service-name>>_ENV }}
           EOF
-  
-  
+
+
       - name: Run lint test if present only
         run:  npm run lint --if-present
 
-    
+
       - name: Run unit test if present only
         run:  npm run test --if-present
 
-
+<% if (useSonarCloud) { %>
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      
+<% } %>
 
       - name: Slack Notification
         if: always() # Pick up events even if the job fails or is canceled.
