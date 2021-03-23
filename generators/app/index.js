@@ -112,7 +112,7 @@ module.exports = class extends Generator {
         this.fs.copyTpl(
           glob.sync(this.templatePath('webhook/**/*'), { dot: true }),
           // webhook related files are only inside 'src', that's why we need to specify it
-          `${ destinationPath }/src/`,
+          destinationPath,
           parameters
         );
         break;
@@ -159,7 +159,8 @@ module.exports = class extends Generator {
         break;
 
       case 'webhook':
-        dependencies.push('url');
+        dependencies.push('@types/aws-lambda', 'axios', 'jsonwebtoken');
+        devDependencies.push('nock', '@types/jest', '@types/jsonwebtoken');
         break;
 
       default:
@@ -183,5 +184,17 @@ module.exports = class extends Generator {
   end() {
     this.log(logo);
     this.log('Thanks for using sls-lambda :)');
+    switch (this.answers.api) {
+      case 'graphql':
+        break;
+
+      case 'webhook':
+        this.log('In the serverless.yaml file please remember to put a proper queue name and to change the filter to the messages that you are expecting.');
+        break;
+
+      default:
+        break;
+    }
+
   }
 };

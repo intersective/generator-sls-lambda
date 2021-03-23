@@ -1,5 +1,5 @@
 # The stackname requried to differentiate AWS account deployed .
-service: ${env:STACK_NAME}-<%= appname %>
+service: ${env:STACK_NAME}-${env:SUBDOMAIN}
 
 # This will ensure we expect framework version to be above or atleast this version.
 # This is requried to ensure serverless latest feature works like dotenv example.

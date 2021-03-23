@@ -1,0 +1,147 @@
+# GitHub Actions WorkFlow
+
+name: Deploy to AWS - Master Branch
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the develop branch
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+    branches: [ master ]
+
+jobs:
+  Build-Deploy:
+    name: Build-Deploy
+    runs-on: ubuntu-latest
+    env:
+      region : ap-southeast-2
+      stage : stage
+      prefix: <%= appname %>
+      domain: <%= appname %>.com
+
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      # Setup Node Environment
+      - name: Node.js environment
+        uses: actions/setup-node@v1
+
+      # Install Serverless Framework
+      - name: Install Serverless Framework
+        run: npm i -g serverless
+
+      # Create environment variables
+      - name: create ENV file
+        run: |
+          cat >> .env <<EOF
+          prefix=${{ env.prefix }} >> .env
+          stage=${{ env.stage }} >> .env
+          region=${{ env.region }} >> .env
+          ${{ secrets.STAGE_ENV }}
+          EOF
+
+
+      # Cache Node modules
+      - name: Cache node modules
+        uses: actions/cache@v2
+        id: cache-node-modules
+        env:
+          cache-name: cache
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: |
+            ~/.npm
+            node_modules
+            */*/node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+
+      # Install npm Dependencies requried for prod only.
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        # run:  npm install --only=prod
+        run:  npm install
+
+
+      # Run lint test
+      - name: Run lint Test if present only
+        run:  npm run lint --if-present
+
+      # Run unit test
+      - name: Run unit test if present only
+        run:  npm run test --if-present
+
+      # Run Sonarcloudscan
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.region }}
+
+<% if (useDynamoDB) { %>
+      - name: AWS DynamoDB Global Tables creation
+        env:
+          global_dynamoDB: ${{ env.prefix }}-<%= appname %>-${{ env.stage }}
+          global_region1: us-east-1
+        run: |
+          chmod +x create_dynamoDB_global_table.sh && ./create_dynamoDB_global_table.sh
+<% } %>
+
+      - name: Serverless Packaging
+        run: |
+          serverless package --package artifacts/${{ env.stage }} --stage ${{ env.stage }} --region ${{ env.region }} -v
+
+      - name: Deploy
+        run: |
+          serverless deploy --stage ${{ env.stage }} --region ${{ env.region }} --package artifacts/${{ env.stage }} -v
+
+      # Run Slack Notification
+      - name: Slack Notification
+        if: always() # Pick up events even if the job fails or is canceled.
+        uses: 8398a7/action-slack@v3
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          MATRIX_CONTEXT: ${{ toJson(matrix) }} # required
+        with:
+          status: ${{ job.status }}
+          author_name: <%= appname %> master branch - Deploy to AWS (Stage environment)
+          mention: 'here'
+          if_mention: failure,cancelled
+          job_name: Build-Deploy # Match the name above.
+          fields: repo,commit,eventName,ref,workflow,message,author,job,took
+          custom_payload: |
+            {
+            username: 'GitHub Action CI WorkFlow',
+            icon_emoji: ':github:',
+            attachments: [{
+              color: '${{ job.status }}' === 'success' ? 'good' : ${{ job.status }}' === 'failure' ? 'danger' : 'warning',
+              text:
+             `${process.env.AS_REPO}\n
+              ${process.env.AS_COMMIT}\n
+              ${process.env.AS_EVENT_NAME}\n
+              @${process.env.AS_REF}\n
+              @${process.env.AS_WORKFLOW}\n
+              ${process.env.AS_MESSAGE}\n
+              ${process.env.AS_AUTHOR}\n
+              ${process.env.AS_JOB}\n
+              ${process.env.AS_TOOK}`,
+            }]
+            }

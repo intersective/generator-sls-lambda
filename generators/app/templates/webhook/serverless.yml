@@ -1,0 +1,169 @@
+service: ${env:STACK_NAME}-${env:SUBDOMAIN}
+
+frameworkVersion: ^2.17.0
+
+useDotenv: true
+
+plugins:
+  - serverless-offline
+  - serverless-plugin-typescript
+
+package:
+  exclude:
+    - .github/**
+  include:
+    - artifacts/**/*
+    - serverless.yml
+    - .env
+    - package.json
+    - package-lock.json
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  timeout: 30
+  memorySize: 128
+  region: ${env:REGION}
+  stage: ${env:ENV}
+  tracing:
+    lambda: true
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:DeleteLogGroup
+        - logs:PutLogEvents
+        - logs:DescribeLogStreams
+        - logs:DescribeLogGroups
+        - logs:FilterLogEvents
+      Resource: "arn:aws:logs:*:*:*"
+    - Effect: Allow
+      Action:
+        - lambda:AddPermission
+        - lambda:CreateAlias
+        - lambda:DeleteFunction
+        - lambda:InvokeFunction
+        - lambda:PublishVersion
+        - lambda:RemovePermission
+        - lambda:Update*
+        - lambda:CreateEventSourceMapping
+        - lambda:DeleteEventSourceMapping
+      Resource:
+        - arn:aws:lambda:*:*:function:*
+
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+        - ssm:*
+      Resource:
+        - arn:aws:secretsmanager:*:*:secret:*
+    - Effect: "Allow" # xray permissions (required)
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
+    - Effect: 'Allow'
+      Action:
+        - "sns:Publish"
+        - "sns:Subscribe"
+      Resource:
+        - arn:aws:sns:${env:REGION}:*:${env:STACK_NAME}-MessagingServiceTopic
+    - Effect: 'Allow'
+      Action:
+        - "sqs:SendMessage"
+        - "sqs:GetQueueUrl"
+      Resource:
+        - "arn:aws:sqs:${env:REGION}::"
+    - Effect: 'Allow'
+      Action:
+        - "sqs:ListQueues"
+      Resource:
+        - "arn:aws:sqs:${env:REGION}::"
+
+functions:
+  publish:
+    handler: src/index.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - <%= appname %>Queue
+              - Arn
+              
+custom:
+  serverless-offline:
+    host: 0.0.0.0
+
+resources:
+  Resources:
+    <%= appname %>Queue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: 
+          Fn::Join:
+            - "-"
+            - - ${env:STACK_NAME}
+              - "<%= appname %>Queue"
+    TopicSubscription:
+      Type: "AWS::SNS::Subscription"
+      Properties:
+        DeliveryPolicy:
+          healthyRetryPolicy:
+            numRetries: 3
+            minDelayTarget: 10
+            maxDelayTarget: 30
+            numMinDelayRetries: 1
+            numMaxDelayRetries: 2
+            numNoDelayRetries: 0
+            backoffFunction: exponential
+        TopicArn: 
+          Fn::Join:
+            - ""
+            - - "arn:aws:sns:"
+              - Ref: AWS::Region
+              - ":"
+              - Ref: AWS::AccountId
+              - ":"
+              - ${env:STACK_NAME}
+              - "-MessagingServiceTopic"
+        Endpoint: 
+          Fn::GetAtt:
+            - <%= appname %>Queue
+            - Arn
+        Protocol: "sqs"
+        RawMessageDelivery: true
+        FilterPolicy: 
+          type:
+            - <%= appname %>
+    SqsQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref <%= appname %>Queue
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Sid: Allow-SNS-SendMessage
+              Effect: Allow
+              Principal: "*"
+              Action:
+                - sqs:SendMessage
+              Resource: 
+                Fn::GetAtt:
+                  - <%= appname %>Queue
+                  - Arn
+              Condition:
+                ArnEquals:
+                  aws:SourceArn: 
+                    Fn::Join:
+                      - ""
+                      - - "arn:aws:sns:"
+                        - Ref: AWS::Region
+                        - ":"
+                        - Ref: AWS::AccountId
+                        - ":"
+                        - ${env:STACK_NAME}
+                        - "-MessagingServiceTopic"
