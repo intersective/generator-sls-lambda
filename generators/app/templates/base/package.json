@@ -11,5 +11,64 @@
     "test-update": "npx jest --updateSnapshot"
   },
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "@dazn/lambda-powertools-http-client": "^1.28.1",
+    "@dazn/lambda-powertools-logger": "^1.28.1",
+    "@dazn/lambda-powertools-pattern-basic": "^1.28.1",
+<% if (useJwtParser) { %>
+    "@practera/jwt-parser": "^1.0.5",
+<% } %>
+<% if (useDynamoDB) { %>
+    "@dazn/lambda-powertools-dynamodb-client": "^1.28.1",
+<% } %>
+<% if (useGraphQL) { %>
+    "apollo-datasource": "^0.7.2",
+    "apollo-datasource-rest": "^0.9.4",
+    "apollo-server-lambda": "^2.18.2",
+    "dataloader": "^2.0.0",
+    "graphql": "^15.3.0",
+    "graphql-tag": "^2.11.0",
+<% } %>
+<% if (useRestAPI) { %>
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "serverless-http": "^2.7.0",
+<% } %>
+    "dotenv": "^8.2.0"
+  },
+  "devDependencies": {
+    "serverless-certificate-creator": "^1.5.2",
+    "serverless-domain-manager": "^5.1.0",
+    "serverless-offline": "^6.8.0",
+    "serverless-plugin-typescript": "^1.1.9",
+    "typescript": "^4.2.3",
+    "eslint": "^7.21.0",
+    "@typescript-eslint/eslint-plugin": "^4.17.0",
+    "@typescript-eslint/eslint-plugin-tslint": "^4.17.0",
+    "@typescript-eslint/parser": "^4.17.0",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.3",
+<% if (useDynamoDB) { %>
+    "serverless-dynamodb-local": "^0.2.39",
+    "aws-sdk": "^2.788.0",
+<% } %>
+<% if (useSonarCloud) { %>
+    "jest-sonar-reporter": "^2.0.0",
+<% } %>
+<% if (useGraphQL) { %>
+    "@2fd/graphdoc": "^2.4.0",
+    "@types/aws-lambda": "^8.10.17",
+    "apollo-server-testing": "^2.18.2",
+<% } %>
+<% if (useRestAPI) { %>
+    "@types/cors": "^2.8.9",
+    "@types/express": "^4.17.6",
+    "jest-express": "^1.12.0",
+<% } %>
+<% if (useWebhook) { %>
+    "nock": "^13.0.9",
+    "@types/aws-lambda": "^8.10.17",
+<% } %>
+    "serverless": "^2.30.3"
+  }
 }
