@@ -70,6 +70,8 @@ module.exports = class extends Generator {
       useJwtParser: this.answers.choices.includes('jwtParser'),
       useDynamoDB: this.answers.choices.includes('dynamodb'),
       useGraphQL: this.answers.api === 'graphql',
+      useRestAPI: this.answers.api === 'rest',
+      useWebhook: this.answers.api === 'webhook',
     };
 
     // copy base files
@@ -135,7 +137,7 @@ module.exports = class extends Generator {
     const devDependencies = [
       'serverless', 'serverless-offline', 'serverless-plugin-typescript', 'serverless-certificate-creator', 'serverless-domain-manager',
       'typescript', 'eslint', '@typescript-eslint/parser', '@typescript-eslint/eslint-plugin', '@typescript-eslint/eslint-plugin-tslint',
-      'jest', 'jest-express', 'ts-jest'
+      'jest', 'ts-jest'
     ];
 
     if (this.answers.choices.includes('jwtParser')) {
@@ -159,14 +161,13 @@ module.exports = class extends Generator {
         break;
 
       case 'webhook':
-        dependencies.push('@types/aws-lambda', 'axios', 'jsonwebtoken');
-        devDependencies.push('nock', '@types/jest', '@types/jsonwebtoken');
+        devDependencies.push('nock', '@types/aws-lambda');
         break;
 
       default:
         // rest API packages
         dependencies.push('cors', 'express', 'serverless-http');
-        devDependencies.push('@types/cors', '@types/express');
+        devDependencies.push('@types/cors', '@types/express', 'jest-express');
         break;
     }
 
