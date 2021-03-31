@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+<% if (useDynamoDB) { %>
+    "db_install": "serverless dynamodb install --stage local",
+    "db_migrate": "serverless dynamodb migrate --stage local",
+<% } %>
     "dev": "serverless offline --useChildProcesses --stage local",
     "lint": "eslint src --ext .ts",
     "lint-fix": "eslint src --ext .ts --fix",
