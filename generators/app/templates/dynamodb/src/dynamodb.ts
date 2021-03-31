@@ -8,7 +8,7 @@ let options = {};
 if (process.env.IS_OFFLINE) {
   options = {
     region: 'localhost',
-    endpoint: 'http://localhost:18000',
+    endpoint: 'http://localhost:1800',
   };
   // pure DynamoDB for local
   DynamoDB = new AWS.DynamoDB.DocumentClient(options);

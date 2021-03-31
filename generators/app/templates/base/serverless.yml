@@ -99,6 +99,18 @@ custom:
     host: 0.0.0.0
     noPrependStageInUrl: true
 
+<% if (useDynamoDB) { %>
+  dynamodb:
+    stages:
+      - local
+    start:
+      port: 1800
+      dbPath: .
+      migrate: false
+    migration:
+      dir: offline/migrations
+<% } %>
+
   # The code from here to till the end does custom domain and route 53 registration.
   # This code can be copied to all serverless file and works.
   # It works based on env variables like HOSTEDZONEID,SUBDOMAIN,DOMAIN,ENV
