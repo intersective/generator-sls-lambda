@@ -31,7 +31,7 @@ References:
 ## Detailed Information and Interactive Shell window terminal for dynamoDB for auto code generation as per api calls.
 
 ```
-http://localhost:18000/shell
+http://localhost:1800/shell
 
 ```
 <% } %>
