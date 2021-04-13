@@ -32,7 +32,6 @@ References:
 
 ```
 http://localhost:18000/shell
-
 ```
 <% } %>
 

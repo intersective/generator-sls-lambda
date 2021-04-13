@@ -44,6 +44,17 @@ provider:
   # It ensured Lambda has access to write Cloudwatch logs, perform lambda calls, api gateway calls
   # And if any add-on service like secret variables, dynamoDB.
   iamRoleStatements:
+<% if (useDynamoDB) { %>
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${env:DYNAMODB_TABLE}"
+<% } %>
     - Effect: Allow
       Action:
         - logs:CreateLogGroup
@@ -99,6 +110,16 @@ custom:
     host: 0.0.0.0
     noPrependStageInUrl: true
 
+<% if (useDynamoDB) { %>
+  dynamodb:
+    stages:
+      - local
+    start:
+      port: 18000
+      dbPath: .
+      migrate: false
+<% } %>
+
   # The code from here to till the end does custom domain and route 53 registration.
   # This code can be copied to all serverless file and works.
   # It works based on env variables like HOSTEDZONEID,SUBDOMAIN,DOMAIN,ENV
@@ -127,3 +148,24 @@ custom:
       Name: ${env:SUBDOMAIN}.${env:DOMAIN}
       Environment: ${env:ENV}
     rewriteRecords: false
+
+<% if (useDynamoDB) { %>
+resources:
+  Resources:
+    GlobalDynamoDbTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TableName: ${env:DYNAMODB_TABLE}
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+<% } %>
