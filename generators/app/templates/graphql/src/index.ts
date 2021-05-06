@@ -72,6 +72,10 @@ function runApollo(event: APIGatewayProxyEvent, context: Context, apollo: any) {
 }
 
 async function apolloHandler(event: APIGatewayProxyEvent, context: Context, cb: Callback) {
+  if (!event.httpMethod) {
+    Log.debug('empty proxy event');
+    return Promise.resolve('');
+  }
   const apollo = apolloServer.createHandler({
     cors: {
       origin: '*',
